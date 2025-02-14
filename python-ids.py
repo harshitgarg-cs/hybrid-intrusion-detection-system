@@ -103,4 +103,83 @@ class TrafficAnalyzer:
             'tcp_flags' : packet[TCP].flags,
             'window_size' : packet[TCP].window
         }
+
+
+from sklearn.ensemble import IsolationForest
+import numpy as np
+
+class DetectionEngine:
+    def __init__(self):
+        self.anomaly_detector = IsolationForest(
+            contamination = 0.1,
+            random_state = 42
+        )
+        self.signature_rules = self.load_signature_rules()
+        self.training_data=[]
     
+    def load_signature_rules(self):
+        return{
+            'syn_flood' : {
+                'condition' : lambda features: (
+                    features['tcp_flags'] == 2 and # SYN flag
+                    features['packet_rate'] > 100
+                )
+            },
+            'port_scan' : {
+                'condition' : lambda features: (
+                    features['packet_size'] < 100 and
+                    features['packet_rate'] > 50
+                )
+             }
+        }
+    
+    '''
+    The train_anomaly_detector method trains the Isolation Forest model using a dataset of normal traffic features.
+    This enables the model to differentiate typical patterns from anomalies.
+    '''
+    def train_anomaly_detector(self, normal_trafic_data):
+        self.anomaly_detector.fit(normal_trafic_data)
+    
+    '''
+    The detect_threats method evaluates network traffic features for potential threats using two approaches:
+    
+    1. Signature-Based Detection: It iteratively goes through each of the pre-defined rules, applying the rule's
+    condition to the traffic features. If a rule matches, a signature-based threat is recorded with high confidence.
+    
+    2. Anomaly-Based Detection: It processes the feature vector (packet size, packet rate, and byte rate) through the Isolation
+    Forest model to calculate an anomaly score. If the score indicates unusual behavior, the detection engine triggers it as an 
+    anomaly and produces a confidence score proportional to the anomaly's severity.
+    '''
+    def detect_threats(self, features):
+        threats = []
+
+        #Signature based detection
+        for rule_name, rule in self.signature_rules.items():
+            if rule['condition'](features):
+                threats.append({
+                    'type' : 'signature',
+                    'rule' : rule_name,
+                    'confidence' : 1.0
+                })
+        
+        #Anomaly-based detection
+        feature_vector = np.array([[
+            features['packet_size'],
+            features['packet_rate'],
+            features['byte_rate']
+        ]])
+
+        anomaly_score = self.anomaly_detector.score_samples(feature_vector)[0]
+        if anomaly_score < -0.5: #Threshold for anomaly detection
+            threats.append({
+                'type' : 'anomaly',
+                'score' : anomaly_score,
+                'confidence' : min(1.0, abs(anomaly_score))
+            })
+        
+        '''
+        Finally, returning the aggregated list of identified threats with their respective annotation (either signature or anomaly),
+        the rule or score that triggered the anomaly, and a confidence score that suggests how likely it is that the identified pattern
+        is a threat.
+        '''
+        return threats

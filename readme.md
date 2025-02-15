@@ -1,6 +1,10 @@
+Here's the `README` file content for your project, which you can use as it is or modify further as needed:
+
+---
+
 # Hybrid Intrusion Detection System (IDS)
 
-An Intrusion Detection System (IDS) is like a security camera for your network. Just as security cameras help identify suspicious activities in the physical world, an IDS monitors your network to detect potential cyber attacks and security breaches.
+An Intrusion Detection System (IDS) is like a security camera for your network. Just as security cameras help identify suspicious activities in the physical world, an IDS monitors your network to detect potential cyberattacks and security breaches.
 
 ## Overview
 
@@ -28,7 +32,7 @@ pip install scapy python-nmap numpy sklearn
 To start the IDS, simply run:
 
 ```sh
-python-ids.py
+python ids.py
 ```
 
 By default, it monitors the `eth0` interface. Modify the script to change the network interface based on your system.

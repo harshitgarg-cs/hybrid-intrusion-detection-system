@@ -1,7 +1,3 @@
-Here's the `README` file content for your project, which you can use as it is or modify further as needed:
-
----
-
 # Hybrid Intrusion Detection System (IDS)
 
 An Intrusion Detection System (IDS) is like a security camera for your network. Just as security cameras help identify suspicious activities in the physical world, an IDS monitors your network to detect potential cyberattacks and security breaches.

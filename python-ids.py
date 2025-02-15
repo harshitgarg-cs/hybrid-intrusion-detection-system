@@ -10,7 +10,7 @@ class PacketCapture:
         queue.Queue to store captured packets and a threading
         event to control when the packet capture should stop.
         '''
-        self.packet_capture = queue.Queue()
+        self.packet_queue = queue.Queue()
         self.stop_capture = threading.Event()
 
     def packet_callback(self, packet):
@@ -235,11 +235,11 @@ class AlertSystem:
 
 
 class IntrusionDetectionSystem:
-    def __init__(self, interface="eth0"):
-        self.packet_capture = PacketCapture
-        self.traffic_analyzer = TrafficAnalyzer
-        self.detection_engine = DetectionEngine
-        self.alert_system = AlertSystem
+    def __init__(self, interface = "eth0"):
+        self.packet_capture = PacketCapture()
+        self.traffic_analyzer = TrafficAnalyzer()
+        self.detection_engine = DetectionEngine()
+        self.alert_system = AlertSystem()
 
         self.interface = interface
     
@@ -273,5 +273,53 @@ class IntrusionDetectionSystem:
                 break
 
 if __name__ == "__main__":
-    ids = IntrusionDetectionSystem
+    ids = IntrusionDetectionSystem()
     ids.start()
+
+
+#Funtion to test the program
+from scapy.all import IP, TCP
+
+def test_ids():
+    # Create test packets to simulate various scenarios
+    test_packets = [
+        # Normal traffic
+        IP(src="192.168.1.1", dst="192.168.1.2") / TCP(sport=1234, dport=80, flags="A"),
+        IP(src="192.168.1.3", dst="192.168.1.4") / TCP(sport=1235, dport=443, flags="P"),
+
+        # SYN flood simulation
+        IP(src="10.0.0.1", dst="192.168.1.2") / TCP(sport=5678, dport=80, flags="S"),
+        IP(src="10.0.0.2", dst="192.168.1.2") / TCP(sport=5679, dport=80, flags="S"),
+        IP(src="10.0.0.3", dst="192.168.1.2") / TCP(sport=5680, dport=80, flags="S"),
+
+        # Port scan simulation
+        IP(src="192.168.1.100", dst="192.168.1.2") / TCP(sport=4321, dport=22, flags="S"),
+        IP(src="192.168.1.100", dst="192.168.1.2") / TCP(sport=4321, dport=23, flags="S"),
+        IP(src="192.168.1.100", dst="192.168.1.2") / TCP(sport=4321, dport=25, flags="S"),
+    ]
+
+    ids = IntrusionDetectionSystem()
+
+    # Simulate packet processing and threat detection
+    print("Starting IDS Test...")
+    for i, packet in enumerate(test_packets, 1):
+        print(f"\nProcessing packet {i}: {packet.summary()}")
+
+        # Analyze the packet
+        features = ids.traffic_analyzer.analyze_packet(packet)
+
+        if features:
+            # Detect threats based on features
+            threats = ids.detection_engine.detect_threats(features)
+
+            if threats:
+                print(f"Detected threats: {threats}")
+            else:
+                print("No threats detected.")
+        else:
+            print("Packet does not contain IP/TCP layers or is ignored.")
+
+    print("\nIDS Test Completed.")
+
+if __name__ == "__main__":
+    test_ids()

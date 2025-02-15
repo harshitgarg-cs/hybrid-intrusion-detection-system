@@ -241,7 +241,8 @@ class IntrusionDetectionSystem:
         self.detection_engine = DetectionEngine()
         self.alert_system = AlertSystem()
 
-        self.interface = interface
+        user_interface = input(f"Enter network interface (default is 'eth0'): ").strip()
+        self.interface = user_interface if user_interface else interface
     
     def start(self):
         print(f"Starting IDS on interface {self.interface}")

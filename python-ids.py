@@ -183,3 +183,52 @@ class DetectionEngine:
         is a threat.
         '''
         return threats
+
+import logging
+import json
+from datetime import datetime
+
+class AlertSystem:
+    '''
+    The init method sets up a logger named IDS_Alerts with an INFO logging level to capture
+    aler information. It is writing logs to 'ids_alerts.log' by default. 
+    '''
+    def __init__ (self, log_file="ids_alerts.log"):
+        self.logger = logging.getLogger("IDS_Alerts")
+        self.logger.setLevel(logging.INFO)
+
+        handler = logging.FileHandler(log_file)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(levelname)s - %(message)s'
+        )
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+
+    '''
+    The generate_alert method is responsible for creating structured alert entries. Each alert
+    includes key information such as the timestamp of detection, the type of threat, the source and destination IPs
+    involved, the confidence level of the detection, and additional threat-specific details. These alerts are logged as WARNING 
+    level messaves in JSON format.
+    '''
+    def generate_alert(self, threat, packet_info):
+        alert = {
+            'timestamp' : datetime.now().isoformat(),
+            'threat_type' : threat['type'],
+            'source_ip' : packet_info.get('source_ip'),
+            'destination_ip' : packet_info.get('destination_ip'),
+            'confidence' : threat.get('confidence', 0.0),
+            'details' : threat
+        }
+
+        self.logger.warning(json.dumps(alert))
+
+        '''
+        If confidence level of a detected threat is higher than 0.8, the alert is escalated and logged as a CRITICAL
+        level message. 
+        '''
+        if threat['confidence'] > 0.8:
+            self.logger.critical(
+                f"High confidence threat detected: {json.dumps(alert)}"
+            )
+            # Implement additional notification methods here
+            # (e.g., email, Slack, SIEM integration)

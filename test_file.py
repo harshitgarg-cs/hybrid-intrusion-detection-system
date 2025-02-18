@@ -1,5 +1,5 @@
-#Funtion to test the program
 from scapy.all import IP, TCP
+from ids import IntrusionDetectionSystem
 
 
 def test_ids():
@@ -31,6 +31,13 @@ def test_ids():
         features = ids.traffic_analyzer.analyze_packet(packet)
 
         if features:
+            # Log the flow statistics
+            flow_key = (packet[IP].src, packet[IP].dst, packet[TCP].sport, packet[TCP].dport)
+            stats = ids.traffic_analyzer.flow_stats.get(flow_key, None)
+
+            if stats:
+                print(f"Flow {flow_key} - Start Time: {stats['start_time']} | Last Time: {stats['last_time']}")
+            
             # Detect threats based on features
             threats = ids.detection_engine.detect_threats(features)
 
@@ -42,6 +49,7 @@ def test_ids():
             print("Packet does not contain IP/TCP layers or is ignored.")
 
     print("\nIDS Test Completed.")
+
 
 if __name__ == "__main__":
     test_ids()

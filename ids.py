@@ -167,19 +167,24 @@ class DetectionEngine:
                 })
         
         #Anomaly-based detection
-        feature_vector = np.array([[
-            features['packet_size'],
-            features['packet_rate'],
-            features['byte_rate']
-        ]])
+        if hasattr(self.anomaly_detector, "estimator_"):
+            feature_vector = np.array([[
+                features['packet_size'],
+                features['packet_rate'],
+                features['byte_rate']
+            ]])
 
-        anomaly_score = self.anomaly_detector.score_samples(feature_vector)[0]
-        if anomaly_score < -0.5: #Threshold for anomaly detection
-            threats.append({
-                'type' : 'anomaly',
-                'score' : anomaly_score,
-                'confidence' : min(1.0, abs(anomaly_score))
-            })
+            anomaly_score = self.anomaly_detector.score_samples(feature_vector)[0]
+            if anomaly_score < -0.5: #Threshold for anomaly detection
+                threats.append({
+                    'type' : 'anomaly',
+                    'score' : anomaly_score,
+                    'confidence' : min(1.0, abs(anomaly_score))
+                })
+            
+            else:
+                print("Warning: Anomaly detector is not trained. Skipping anomaly detection.")
+            return threats
         
         '''
         Finally, returning the aggregated list of identified threats with their respective annotation (either signature or anomaly),
@@ -244,9 +249,35 @@ class IntrusionDetectionSystem:
         user_interface = input(f"Enter network interface (default is 'eth0'): ").strip()
         self.interface = user_interface if user_interface else interface
     
+    def collect_normal_traffic(self, sample_count = 100):
+        print(f"Collecting {sample_count} normal taffic samples for training...")
+        collected_samples = []
+
+        while len(collected_samples) < sample_count:
+            try:
+                packet = self.packet_capture.packet_queue.get(timeout=2)
+                features = self.traffic_analyzer.analyze_packet(packet)
+                if features:
+                    collected_samples.append([
+                        features['packet_size'],
+                        features['packet_rate'],
+                        features['byte_rate']
+                    ])
+            except queue.Empty:
+                continue
+        
+        if collected_samples:
+            self.detection_engine.train_anomaly_detector(np.array(collected_samples))
+            print("Training completed.")
+        
+        else:
+            print("Warning: No training data collected. Anomaly detection may not work.")
+
     def start(self):
         print(f"Starting IDS on interface {self.interface}")
         self.packet_capture.start_capture(self.interface)
+        
+        self.collect_normal_traffic()
 
         while True:
             try:

@@ -95,11 +95,14 @@ class TrafficAnalyzer:
         These include the packet size, flow duration, packet rate, byte rate, TCP flags,
         and the TCP window size. These metrics are quite useful to identify patterns, anomalies, or potential threats in network traffic.
         '''
+        duration = stats['last_time'] - stats['start_time']
+        if duration == 0:
+            duration = 1e-6  # Avoid division by zero
         return{
             'packet_size' : len(packet),
             'flow_duration' : stats['last_time'] - stats['start_time'],
-            'packet_rate' : stats['packet_count'] / (stats['last_time']-stats['start_time']),
-            'byte_rate' : stats['byte_count'] / (stats['last_time']-stats['start_time']),
+            'packet_rate' : stats['packet_count'] / duration,
+            'byte_rate' : stats['byte_count'] / duration,
             'tcp_flags' : packet[TCP].flags,
             'window_size' : packet[TCP].window
         }

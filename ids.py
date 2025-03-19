@@ -2,6 +2,11 @@ from scapy.all import sniff, IP, TCP
 from collections import defaultdict
 import threading
 import queue
+from sklearn.ensemble import IsolationForest
+import numpy as np
+import logging
+import json
+from datetime import datetime
 
 class PacketCapture:
     def __init__(self):
@@ -107,10 +112,6 @@ class TrafficAnalyzer:
             'window_size' : packet[TCP].window
         }
 
-
-from sklearn.ensemble import IsolationForest
-import numpy as np
-
 class DetectionEngine:
     def __init__(self):
         self.anomaly_detector = IsolationForest(
@@ -186,10 +187,6 @@ class DetectionEngine:
         is a threat.
         '''
         return threats
-
-import logging
-import json
-from datetime import datetime
 
 class AlertSystem:
     '''

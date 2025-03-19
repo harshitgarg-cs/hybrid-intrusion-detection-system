@@ -141,8 +141,8 @@ class DetectionEngine:
     The train_anomaly_detector method trains the Isolation Forest model using a dataset of normal traffic features.
     This enables the model to differentiate typical patterns from anomalies.
     '''
-    def train_anomaly_detector(self, normal_trafic_data):
-        self.anomaly_detector.fit(normal_trafic_data)
+    def train_anomaly_detector(self, normal_traffic_data):
+        self.anomaly_detector.fit(normal_traffic_data)
     
     '''
     The detect_threats method evaluates network traffic features for potential threats using two approaches:

@@ -41,8 +41,15 @@ def test_ids():
             # Detect threats based on features
             threats = ids.detection_engine.detect_threats(features)
 
-            if threats:
-                print(f"Detected threats: {threats}")
+            for threat in threats:
+                        packet_info = {
+                            'source_ip' : packet[IP].src,
+                            'destination_ip' : packet[IP].dst,
+                            'source_port' : packet[TCP].sport,
+                            'destination_port' : packet[TCP].dport
+                        }
+                        ids.alert_system.generate_alert(threat, packet_info)
+
             else:
                 print("No threats detected.")
         else:

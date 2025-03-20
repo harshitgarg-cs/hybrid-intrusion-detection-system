@@ -249,7 +249,7 @@ class IntrusionDetectionSystem:
         user_interface = input(f"Enter network interface (default is 'eth0'): ").strip()
         self.interface = user_interface if user_interface else interface
     
-    def collect_normal_traffic(self, sample_count = 100):
+    def collect_normal_traffic(self, sample_count = 500):
         print(f"Collecting {sample_count} normal taffic samples for training...")
         collected_samples = []
 
@@ -258,6 +258,7 @@ class IntrusionDetectionSystem:
                 packet = self.packet_capture.packet_queue.get(timeout=2)
                 features = self.traffic_analyzer.analyze_packet(packet)
                 if features:
+                    print(features) #This print statement is to check if the program is getting data or not
                     collected_samples.append([
                         features['packet_size'],
                         features['packet_rate'],
